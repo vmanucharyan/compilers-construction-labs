@@ -12,7 +12,7 @@ pub enum AddOp {
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum CmpOp {
-    LE, L, GE, G, E
+    LE, L, GE, G, NE
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -37,6 +37,7 @@ pub enum Symbol {
 #[derive(Clone, PartialEq, Debug)]
 pub enum ParseError {
     UnknownError(&'static str),
+    WrongExpression,
     OperandMissing,
     UnbalancedRightBrace,
     UnbalancedLeftBrace,
@@ -111,7 +112,7 @@ fn reduce<'a>(input: &'a [Token], stack: &Vec<Symbol>, parse: &Vec<i32>) -> Pars
         [.., Symbol::Terminal(ref b), Symbol::Nonterminal, Symbol::Terminal(ref a)]
         if pr(b, a) == Presedence::Less => {
             let new_stack = append_slice(&stack[0..stack.len() - 1], Symbol::Nonterminal);
-            (6, new_stack)
+            (7, new_stack)
         },
 
         // 1
@@ -119,49 +120,17 @@ fn reduce<'a>(input: &'a [Token], stack: &Vec<Symbol>, parse: &Vec<i32>) -> Pars
             x..,
             Symbol::Terminal(ref b),
             Symbol::Nonterminal,
-            Symbol::Terminal(ref add_op @ Token::Add(..)),
+            Symbol::Terminal(ref cmp_op @ Token::Cmp(..)),
             Symbol::Nonterminal
         ]
-        if pr(b, add_op) == Presedence::Less => {
+        if pr(b, cmp_op) == Presedence::Less => {
             let mut new_stack = x.to_vec();
             new_stack.push(Symbol::Terminal(b.clone()));
             new_stack.push(Symbol::Nonterminal);
             (1, new_stack)
-        },
+        }
 
-        // 5.1
-        [
-            x..,
-            Symbol::Terminal(ref b),
-            Symbol::Terminal(Token::LeftBrace),
-            Symbol::Nonterminal,
-            Symbol::Terminal(Token::RightBrace)
-        ]
-        if pr(b, &Token::LeftBrace) == Presedence::Less => {
-            let mut new_stack = x.to_vec();
-            new_stack.push(Symbol::Terminal(b.clone()));
-            new_stack.push(Symbol::Nonterminal);
-            (5, new_stack)
-        },
-
-        // 5.2
-        [
-            x..,
-            Symbol::Terminal(ref b),
-            Symbol::Nonterminal,
-            Symbol::Terminal(Token::LeftBrace),
-            Symbol::Nonterminal,
-            Symbol::Terminal(Token::RightBrace)
-        ]
-        if pr(b, &Token::LeftBrace) == Presedence::Less => {
-            let mut new_stack = x.to_vec();
-            new_stack.push(Symbol::Terminal(b.clone()));
-            new_stack.push(Symbol::Nonterminal);
-            new_stack.push(Symbol::Nonterminal);
-            (5, new_stack)
-        },
-
-        // 3
+        // 4
         [
             x..,
             Symbol::Terminal(ref b),
@@ -173,8 +142,55 @@ fn reduce<'a>(input: &'a [Token], stack: &Vec<Symbol>, parse: &Vec<i32>) -> Pars
             let mut new_stack = x.to_vec();
             new_stack.push(Symbol::Terminal(b.clone()));
             new_stack.push(Symbol::Nonterminal);
-            (3, new_stack)
+            (4, new_stack)
         }
+
+        // 2
+        [
+            x..,
+            Symbol::Terminal(ref b),
+            Symbol::Nonterminal,
+            Symbol::Terminal(ref add_op @ Token::Add(..)),
+            Symbol::Nonterminal
+        ]
+        if pr(b, add_op) == Presedence::Less => {
+            let mut new_stack = x.to_vec();
+            new_stack.push(Symbol::Terminal(b.clone()));
+            new_stack.push(Symbol::Nonterminal);
+            (2, new_stack)
+        },
+
+        // 6.1
+        [
+            x..,
+            Symbol::Terminal(ref b),
+            Symbol::Terminal(Token::LeftBrace),
+            Symbol::Nonterminal,
+            Symbol::Terminal(Token::RightBrace)
+        ]
+        if pr(b, &Token::LeftBrace) == Presedence::Less => {
+            let mut new_stack = x.to_vec();
+            new_stack.push(Symbol::Terminal(b.clone()));
+            new_stack.push(Symbol::Nonterminal);
+            (6, new_stack)
+        },
+
+        // 6.2
+        [
+            x..,
+            Symbol::Terminal(ref b),
+            Symbol::Nonterminal,
+            Symbol::Terminal(Token::LeftBrace),
+            Symbol::Nonterminal,
+            Symbol::Terminal(Token::RightBrace)
+        ]
+        if pr(b, &Token::LeftBrace) == Presedence::Less => {
+            let mut new_stack = x.to_vec();
+            new_stack.push(Symbol::Terminal(b.clone()));
+            new_stack.push(Symbol::Nonterminal);
+            new_stack.push(Symbol::Nonterminal);
+            (6, new_stack)
+        },
 
         _ => panic!("reduce error")
     };
