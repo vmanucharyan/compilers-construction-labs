@@ -1,28 +1,28 @@
 use presedence::pr;
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Eq, PartialOrd, Ord)]
 pub enum MulOp {
     Mul, Div
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Eq, PartialOrd, Ord)]
 pub enum AddOp {
     Add, Sub
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Eq, PartialOrd, Ord)]
 pub enum CmpOp {
     LE, L, GE, G, NE
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Eq, PartialOrd, Ord)]
 pub enum Token {
     Mul(MulOp),
     Add(AddOp),
     Cmp(CmpOp),
     LeftBrace,
     RightBrace,
-    Identifier,
+    Identifier(String),
     End
 }
 
