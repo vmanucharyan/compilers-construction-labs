@@ -38,7 +38,7 @@ pub fn pr(a: &Token, b: &Token) -> Presedence {
         (&Token::LeftBrace, &Token::Identifier(..)) => Presedence::Less,
         (&Token::LeftBrace, &Token::Mul(..)) => Presedence::Less,
         (&Token::LeftBrace, &Token::Add(..)) => Presedence::Less,
-        (&Token::LeftBrace, &Token::Cmp(..)) => Presedence::Greater,
+        (&Token::LeftBrace, &Token::Cmp(..)) => Presedence::Less,
         (&Token::LeftBrace, &Token::RightBrace) => Presedence::Equal,
         (&Token::LeftBrace, &Token::End) => Presedence::Error(ParseError::UnbalancedLeftBrace),
 
